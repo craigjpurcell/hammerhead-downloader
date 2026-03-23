@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import secrets
-import socket
 import threading
 import time
 from dataclasses import dataclass, asdict
@@ -224,8 +223,8 @@ class HammerheadClient:
         server = CallbackServer(callback_port)
         server.start()
 
-        print(f"Opening browser for authorization...")
-        print(f"If browser doesn't open automatically, visit:")
+        print("Opening browser for authorization...")
+        print("If browser doesn't open automatically, visit:")
         print(f"  {callback_url}")
         print()
 
@@ -372,11 +371,12 @@ class HammerheadClient:
         except requests.exceptions.RequestException as e:
             raise NetworkError(f"Request failed: {e}")
 
-    def list_activities(self, page: int = 1, per_page: int = 100) -> tuple[list[Activity], dict]:
+    def list_activities(
+        self, page: int = 1, per_page: int = 100
+    ) -> tuple[list[Activity], dict]:
         """Fetch activities from the Hammerhead API."""
         response = self._make_request(
-            "GET", "/activities",
-            params={"page": page, "perPage": per_page}
+            "GET", "/activities", params={"page": page, "perPage": per_page}
         )
         if response.status_code == 401:
             raise AuthenticationError("Authentication failed")

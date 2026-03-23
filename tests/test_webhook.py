@@ -8,9 +8,12 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 
-from hammerdownloader.webhook import verify_signature, download_activity, MIN_DURATION_MS
+from hammerdownloader.webhook import (
+    verify_signature,
+    download_activity,
+    MIN_DURATION_MS,
+)
 from hammerdownloader.client import Activity
 
 
@@ -22,28 +25,28 @@ class TestVerifySignature:
         payload = b'{"activityId": "test-123"}'
         secret = "my-secret"
         signature = hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
-        
+
         assert verify_signature(payload, signature, secret) is True
 
     def test_verify_invalid_signature(self) -> None:
         """Test that invalid signature fails."""
         payload = b'{"activityId": "test-123"}'
         secret = "my-secret"
-        
+
         assert verify_signature(payload, "invalid", secret) is False
 
     def test_verify_missing_signature(self) -> None:
         """Test that missing signature fails."""
         payload = b'{"activityId": "test-123"}'
         secret = "my-secret"
-        
+
         assert verify_signature(payload, None, secret) is False
 
     def test_verify_empty_signature(self) -> None:
         """Test that empty signature fails."""
         payload = b'{"activityId": "test-123"}'
         secret = "my-secret"
-        
+
         assert verify_signature(payload, "", secret) is False
 
 
@@ -65,13 +68,9 @@ class TestDownloadActivity:
             )
             mock_client.get_activity_fit.return_value = b"FIT_FILE_DATA"
             mock_client_class.return_value = mock_client
-            
-            result = download_activity(
-                "test.activity.123",
-                mock_client,
-                Path(tmpdir)
-            )
-            
+
+            result = download_activity("test.activity.123", mock_client, Path(tmpdir))
+
             assert result == "Morning Ride"
             assert (Path(tmpdir) / "test.activity.123.fit").exists()
 
@@ -88,13 +87,11 @@ class TestDownloadActivity:
             distance=2000,
         )
         mock_client_class.return_value = mock_client
-        
+
         result = download_activity(
-            "test.activity.123",
-            mock_client,
-            Path(tempfile.gettempdir())
+            "test.activity.123", mock_client, Path(tempfile.gettempdir())
         )
-        
+
         assert result is None
         mock_client.get_activity_fit.assert_not_called()
 
@@ -104,7 +101,7 @@ class TestDownloadActivity:
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create existing file
             (Path(tmpdir) / "test.activity.123.fit").write_bytes(b"EXISTING")
-            
+
             mock_client = MagicMock()
             mock_client.get_activity.return_value = Activity(
                 id="test.activity.123",
@@ -115,13 +112,9 @@ class TestDownloadActivity:
                 distance=25000,
             )
             mock_client_class.return_value = mock_client
-            
-            result = download_activity(
-                "test.activity.123",
-                mock_client,
-                Path(tmpdir)
-            )
-            
+
+            result = download_activity("test.activity.123", mock_client, Path(tmpdir))
+
             assert result is None
             mock_client.get_activity_fit.assert_not_called()
 

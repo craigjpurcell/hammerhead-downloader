@@ -7,7 +7,6 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 from click.testing import CliRunner
 
 from hammerdownloader.cli import (
@@ -26,14 +25,15 @@ class TestGetDownloadsDir:
     def test_get_downloads_dir_missing(self) -> None:
         """Test error when HAMMERHEAD_DOWNLOADS is not set."""
         import os as os_module
+
         # Create empty .env
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
             f.write("")
             env_file = f.name
-        
+
         try:
             with patch.dict(os.environ, {}, clear=True):
-                with patch('hammerdownloader.cli.load_dotenv'):
+                with patch("hammerdownloader.cli.load_dotenv"):
                     runner = CliRunner()
                     result = runner.invoke(cli, ["activities", "download", "--latest"])
                     assert result.exit_code != 0
@@ -110,7 +110,10 @@ class TestCli:
         """Test activities command without --all flag."""
         runner = CliRunner()
         result = runner.invoke(cli, ["activities", "list"])
-        assert "Use 'hammerhead activities list --all' to list all activities" in result.output
+        assert (
+            "Use 'hammerhead activities list --all' to list all activities"
+            in result.output
+        )
 
     @patch("hammerdownloader.cli.load_credentials")
     def test_activities_command_missing_credentials(self, mock_load: MagicMock) -> None:

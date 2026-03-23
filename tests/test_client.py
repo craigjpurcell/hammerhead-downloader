@@ -10,7 +10,6 @@ from hammerdownloader.client import (
     Activity,
     AuthenticationError,
     HammerheadClient,
-    NetworkError,
 )
 
 

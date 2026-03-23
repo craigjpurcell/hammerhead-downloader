@@ -315,16 +315,16 @@ if __name__ == "__main__":
 def serve(port: int | None) -> None:
     """Start webhook server to receive activity notifications."""
     _load_env()
-    
+
     import os
-    
+
     webhook_secret = os.environ.get("HAMMERHEAD_WEBHOOK_SECRET")
     if not webhook_secret:
         raise click.ClickException(
             "HAMMERHEAD_WEBHOOK_SECRET is not set. "
             "Please configure your webhook secret in .env."
         )
-    
+
     if port is None:
         port_str = os.environ.get("HAMMERHEAD_WEBHOOK_PORT", "3000")
         try:
@@ -333,9 +333,9 @@ def serve(port: int | None) -> None:
             raise click.ClickException(
                 f"Invalid HAMMERHEAD_WEBHOOK_PORT: {port_str}. Must be a number."
             )
-    
+
     client_id, client_secret = load_credentials()
-    
+
     from hammerdownloader.webhook import run_server
-    
+
     run_server(port, webhook_secret, client_id, client_secret)
