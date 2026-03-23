@@ -200,4 +200,31 @@ The webhook server receives push notifications from Hammerhead when new activiti
 
 ---
 
+## Contributing
+
+### Branch Protection (GitHub Settings)
+
+To protect the main branch, configure these settings in your GitHub repository:
+
+**Settings → Branches → Add rule → Apply to `main`:**
+
+| Setting | Value |
+| --- | --- |
+| Require pull request reviews before merging | ✓ |
+| Require review from Code Owners | ✓ |
+| Require status checks to pass before merging | ✓ |
+| Required status checks | `test`, `Run ruff check`, `Check formatting` |
+| Include administrators | ✗ |
+| Allow force pushes | ✗ |
+| Allow deletions | ✗ |
+
+### CI Workflow
+
+This repository uses GitHub Actions for continuous integration:
+
+- Runs on all PRs and pushes to `main`
+- Installs dependencies using `uv`
+- Runs pytest tests
+- Runs ruff linter and formatter checks
+
 If you change behavior or add commands, update this README in the same commit so it stays accurate.
