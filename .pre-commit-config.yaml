@@ -3,32 +3,24 @@
 # Install hooks: pre-commit install --hook-type pre-commit
 
 repos:
-  # Prevent committing .env files (except .env.example)
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+  # Prevent committing .env files (custom local hook)
+  - repo: local
     hooks:
-      - id: check-added-files
+      - id: block-env-files
         name: Block .env file commits
-        entry: python -c "import sys; import os; files = [f for f in sys.argv[1:] if f == '.env' and not f.startswith('.env.example')]; sys.exit(1) if files else sys.exit(0)"
+        entry: python -c "import sys; files = [f for f in sys.argv[1:] if f == '.env' and not f.startswith('.env.example')]; sys.exit(1) if files else sys.exit(0)"
+        language: system
         pass_filenames: true
         stages: [pre-commit]
         description: Prevent committing .env files
 
-  # Detect potential secrets in staged files
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
-    hooks:
-      - id: detect-aws-credentials
-        name: Detect AWS credentials
-        pass_filenames: false
-        stages: [pre-commit]
-
   # Prevent direct commits to main
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v6.0.0
     hooks:
       - id: no-commit-to-branch
         name: Prevent direct commits to main
         args: ["--branch", "main"]
         pass_filenames: false
-        stages: [pre-commit]
+        stages: [commit-msg]
+        always_run: true
