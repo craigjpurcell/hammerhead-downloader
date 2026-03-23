@@ -9,6 +9,7 @@ description = "CLI tool for downloading ride data from Hammerhead API"
 requires-python = ">=3.11"
 dependencies = [
     "click>=8.1.0",
+    "flask>=3.0.0",
     "requests>=2.31.0",
     "python-dotenv>=1.0.0",
 ]

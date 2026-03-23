@@ -6,11 +6,11 @@
 
 ```bash
 # 1) Create & activate a virtual environment
-python -m venv .venv
+uv venv
 source .venv/bin/activate
 
 # 2) Install the CLI
-pip install -e .
+uv pip install -e .
 
 # 3) Configure credentials
 cat > .env <<'EOF'
@@ -38,6 +38,7 @@ hammerhead activities list --all
 │   └── hammerdownloader/
 │       ├── client.py        # OAuth flow + API client
 │       ├── cli.py           # CLI commands
+│       ├── webhook.py       # Webhook server
 │       └── __init__.py
 ├── tests/                   # Test suite
 ├── pyproject.toml           # Dependencies & CLI entrypoint
@@ -61,11 +62,13 @@ HAMMERHEAD_DOWNLOADS=~/hammerhead-rides
 ```
 
 ### Environment Variables
-| Variable | Required | Description |
-| --- | --- | --- |
-| `HAMMERHEAD_CLIENT_ID` | Yes | OAuth client ID from Hammerhead |
-| `HAMMERHEAD_CLIENT_SECRET` | Yes | OAuth client secret from Hammerhead |
-| `HAMMERHEAD_DOWNLOADS` | For `--latest` | Directory to store downloaded FIT files |
+| Variable | Required | Default | Description |
+| --- | --- | --- | --- |
+| `HAMMERHEAD_CLIENT_ID` | Yes | - | OAuth client ID from Hammerhead |
+| `HAMMERHEAD_CLIENT_SECRET` | Yes | - | OAuth client secret from Hammerhead |
+| `HAMMERHEAD_DOWNLOADS` | For `--latest` / serve | - | Directory to store downloaded FIT files |
+| `HAMMERHEAD_WEBHOOK_SECRET` | For `serve` | - | HMAC secret for webhook verification |
+| `HAMMERHEAD_WEBHOOK_PORT` | For `serve` | 3000 | Port for webhook server |
 
 ### Local Files Created
 - `~/.config/hammerhead-downloader/token.json` — stored OAuth tokens
@@ -93,6 +96,16 @@ hammerhead activities download <activity-id>
 hammerhead activities download --latest
 ```
 
+### 5) Start webhook server (auto-download)
+```bash
+# Add to .env
+HAMMERHEAD_WEBHOOK_SECRET=your-webhook-secret
+HAMMERHEAD_WEBHOOK_PORT=3000
+
+# Start server
+hammerhead serve
+```
+
 ## How-to Guides (Task Solver)
 
 ### Sync all new rides
@@ -100,6 +113,20 @@ hammerhead activities download --latest
 hammerhead activities download --latest
 ```
 This downloads all activities not already in `HAMMERHEAD_DOWNLOADS`, skipping duplicates and activities under 5 minutes.
+
+### Set up automatic downloads via webhook
+```bash
+# 1. Configure webhook secret in .env
+echo "HAMMERHEAD_WEBHOOK_SECRET=your-secret" >> .env
+
+# 2. Start the webhook server
+hammerhead serve
+
+# 3. Register your webhook URL with Hammerhead
+# The server outputs the URL to register:
+# Webhook server listening on http://localhost:3000
+# Register this URL with Hammerhead: http://your-ip:3000/webhook
+```
 
 ### Re-authorize a different account
 ```bash
@@ -129,12 +156,22 @@ hammerhead status
 | `hammerhead activities list --all --page N` | List page N |
 | `hammerhead activities download <activity-id>` | Download single FIT file |
 | `hammerhead activities download --latest` | Sync all new activities |
+| `hammerhead serve` | Start webhook server for auto-download |
+| `hammerhead serve --port 8080` | Start webhook server on specific port |
 
 ### `--latest` Flag Behavior
 - Requires `HAMMERHEAD_DOWNLOADS` environment variable
 - Skips activities already downloaded (by filename matching activity ID)
 - Skips activities under 5 minutes duration
 - Reports downloaded and skipped activities clearly
+
+### Webhook Server Behavior
+- Validates incoming requests using HMAC-SHA256 signature (`X-Hmac-Signature` header)
+- Requires `HAMMERHEAD_WEBHOOK_SECRET` environment variable
+- Downloads activities to `HAMMERHEAD_DOWNLOADS`
+- Skips activities under 5 minutes (no logging)
+- Skips duplicates silently
+- Processes webhooks asynchronously
 
 ### OAuth Configuration
 - **Authorization URL:** `https://api.hammerhead.io/v1/auth/oauth/authorize`
@@ -145,12 +182,21 @@ hammerhead status
 
 ## Explanation (Deep Dive)
 
+### CLI Authentication
 The CLI uses the **OAuth 2.0 Authorization Code** flow:
 
 1. `hammerhead auth` opens a browser to the Hammerhead consent screen.
 2. After approval, Hammerhead redirects to your local callback server.
 3. The CLI exchanges the authorization code for a bearer token.
 4. Tokens are stored in `~/.config/hammerhead-downloader/token.json` and refreshed automatically when possible.
+
+### Webhook Server
+The webhook server receives push notifications from Hammerhead when new activities are recorded:
+
+1. `hammerhead serve` starts an HTTP server on port 3000 (configurable).
+2. Register your webhook URL with Hammerhead's developer portal.
+3. When Hammerhead detects a new activity, it POSTs to `/webhook`.
+4. The server validates the HMAC signature, then downloads the FIT file asynchronously.
 
 ---
 
