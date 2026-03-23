@@ -448,7 +448,7 @@ Only add complexity with:
 ### CLI Essentials
 ```bash
 openspec list              # What's in progress?
-openspec show [item]       # View details
+openspec show [item]       # View details 
 openspec validate --strict --no-interactive  # Is it correct?
 openspec archive <change-id> [--yes|-y]  # Mark complete (add --yes for automation)
 ```
