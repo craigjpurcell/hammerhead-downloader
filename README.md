@@ -74,6 +74,22 @@ HAMMERHEAD_DOWNLOADS=~/hammerhead-rides
 - `~/.config/hammerhead-downloader/token.json` — stored OAuth tokens
 - `HAMMERHEAD_DOWNLOADS/*.fit` — downloaded FIT files
 
+### Pre-commit Hooks (Security)
+This repository includes pre-commit hooks to prevent accidentally committing secrets:
+
+```bash
+# Install pre-commit
+pip install pre-commit
+
+# Install hooks
+pre-commit install --hook-type pre-commit
+```
+
+The hooks will:
+- Block commits containing `.env` files
+- Detect AWS credentials in staged files
+- Prevent direct commits to `main`
+
 ## Tutorials (First Steps)
 
 ### 1) Authorize the CLI
