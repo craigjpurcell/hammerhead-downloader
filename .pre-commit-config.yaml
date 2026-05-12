@@ -1,6 +1,6 @@
 # Pre-commit hooks to prevent committing secrets
-# Install with: pre-commit install
-# Install hooks: pre-commit install --hook-type pre-commit
+# Install with: pre-commit install --hook-type pre-commit --hook-type commit-msg
+# Or simply: pre-commit install
 
 repos:
   # Prevent committing .env files (custom local hook)
